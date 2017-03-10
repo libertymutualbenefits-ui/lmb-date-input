@@ -1,0 +1,200 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-input/paper-input-behavior.html">
+<link rel="import" href="../paper-input/paper-input-container.html">
+<link rel="import" href="../paper-input/paper-input-error.html">
+<link rel="import" href="../iron-input/iron-input.html">
+<link rel="import" href="../iron-form-element-behavior/iron-form-element-behavior.html">
+<link rel="import" href="../iron-validator-behavior/iron-validator-behavior.html">
+<link rel="import" href="../iron-validatable-behavior/iron-validatable-behavior.html">
+
+<link rel="import" href="date-input.html">
+
+<!--
+`lmb-date-input` is a  single-line text field with Material Design styling
+for entering a date in MM/DD/YYYY format
+
+    <lmb-date-input></lmb-date-input>
+    <lmb-date-input value="11/01/2015"></lmb-date-input>
+
+It may include an optional label, which by default is "Date".
+
+    <lmb-date-input label="Date"></lmb-date-input>
+
+
+### Validation
+
+The input can check whether the entered date is a valid, future date.
+
+The input can be automatically validated as the user is typing by using
+the `auto-validate` and `required` attributes. For manual validation, the
+element also has a `validate()` method, which returns the validity of the
+input as well sets any appropriate error messages and styles.
+
+See `Polymer.PaperInputBehavior` for more API docs.
+
+### Styling
+
+See `Polymer.PaperInputContainer` for a list of custom properties used to
+style this element.
+
+@group LMB Elements
+@hero hero.svg
+@demo demo/index.html
+@class lmb-date-input
+-->
+
+<dom-module id="lmb-date-input">
+
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <paper-input-container id="container"
+        no-label-float="[[noLabelFloat]]"
+        always-float-label="[[alwaysFloatLabel]]"
+        attr-for-value="date"
+        disabled$="[[disabled]]"
+        invalid="[[invalid]]">
+
+      <label hidden$="[[!label]]">[[label]]</label>
+
+      <date-input class="paper-input-input" id="input"
+          aria-label-prefix="[[_ariaLabelledBy]]"
+          required$="[[required]]"
+          month="[[_computeMonth(value)]]"
+          day="[[_computeDay(value)]]"
+          year="[[_computeYear(value)]]"
+          autocomplete$="[[autocomplete]]"
+          disabled$="[[disabled]]"
+          invalid="{{invalid}}"
+          autofocus$="[[autofocus]]"
+          inputmode$="[[inputmode]]"
+          placeholder$="[[placeholder]]"
+          readonly$="[[readonly]]"
+          >
+      </date-input>
+
+      <template is="dom-if" if="[[errorMessage]]">
+        <paper-input-error>[[errorMessage]]</paper-input-error>
+      </template>
+
+    </paper-input-container>
+  </template>
+
+  <script>
+    (function() {
+
+      Polymer({
+
+        is: 'lmb-date-input',
+
+        /* The underlying dateInput is tabbable */
+        hostAttributes: {
+          'tabindex': -1
+        },
+
+        behaviors: [
+          Polymer.PaperInputBehavior,
+          Polymer.IronFormElementBehavior
+        ],
+
+        properties: {
+          /**
+           * The label for this input.
+           */
+          label: {
+            type: String,
+            value: "Date"
+          },
+
+          value: {
+            type: String,
+            value: '',
+            observer: '_onValueChanged'
+          },
+
+          inputMode: {
+            type: String,
+            value: 'iron-input'
+          }
+        },
+
+        listeners: {
+          'dateChanged': '_dateChanged'
+        },
+
+        observers: [
+          '_onFocusedChanged(focused)'
+        ],
+
+        ready: function() {
+          // If there's an initial input, validate it.
+          if (this.value)
+            this._handleAutoValidate();
+        },
+
+        attached: function() {
+          console.log('behaviors', Polymer.IronFormElementBehavior);
+        },
+
+        /**
+         * A handler that is called on input
+         */
+        _onValueChanged: function(value, oldValue) {
+          // The initial property assignment is handled by `ready`.
+          console.log('_onValueChanged', value, oldValue);
+          if (oldValue == undefined)
+            return;
+
+          this._handleAutoValidate();
+        },
+
+        _dateChanged: function(event) {
+          console.log('dateChanged', event);
+          if (event.detail.month && event.detail.day && event.detail.year) {
+            this.value = event.detail.month + '/' + event.detail.day + '/' + event.detail.year;
+          }
+        },
+
+        _computeMonth: function(value) {
+          // Date is in MM/DD/YYYY format.
+          return value.split('/')[0];
+        },
+
+        _computeDay: function(value) {
+          // Date is in MM/DD/YYYY format.
+          return value.split('/')[1];
+        },
+
+        _computeYear: function(value) {
+          // Date is in MM/DD/YYYY format.
+          console.log('year::::', value.split('/')[2]);
+          return value.split('/')[2];
+        },
+
+        /**
+         * Overidden from Polymer.PaperInputBehavior.
+         */
+        validate: function() {
+          return this.$.input.validate();
+        },
+
+        /**
+         * Overidden from Polymer.IronControlState.
+         */
+        _onFocusedChanged: function(focused) {
+          if (!focused) {
+            this._handleAutoValidate();
+          }
+        }
+          
+      })
+
+    })();
+
+  </script>
+
+</dom-module>
