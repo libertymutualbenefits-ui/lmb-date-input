@@ -7,7 +7,7 @@
 <link rel="import" href="../iron-validator-behavior/iron-validator-behavior.html">
 <link rel="import" href="../iron-validatable-behavior/iron-validatable-behavior.html">
 
-<link rel="import" href="date-input.html">
+<link rel="import" href="lmb-date-input-field.html">
 
 <!--
 `lmb-date-input` is a  single-line text field with Material Design styling
@@ -61,7 +61,7 @@ style this element.
 
       <label hidden$="[[!label]]">[[label]]</label>
 
-      <date-input class="paper-input-input" id="input"
+      <lmb-date-input-field class="paper-input-input" id="input"
           aria-label-prefix="[[_ariaLabelledBy]]"
           required$="[[required]]"
           month="[[_computeMonth(value)]]"
@@ -75,7 +75,7 @@ style this element.
           placeholder$="[[placeholder]]"
           readonly$="[[readonly]]"
           >
-      </date-input>
+      </lmb-date-input-field>
 
       <template is="dom-if" if="[[errorMessage]]">
         <paper-input-error>[[errorMessage]]</paper-input-error>
@@ -136,16 +136,11 @@ style this element.
             this._handleAutoValidate();
         },
 
-        attached: function() {
-          console.log('behaviors', Polymer.IronFormElementBehavior);
-        },
-
         /**
          * A handler that is called on input
          */
         _onValueChanged: function(value, oldValue) {
           // The initial property assignment is handled by `ready`.
-          console.log('_onValueChanged', value, oldValue);
           if (oldValue == undefined)
             return;
 
@@ -153,7 +148,6 @@ style this element.
         },
 
         _dateChanged: function(event) {
-          console.log('dateChanged', event);
           if (event.detail.month && event.detail.day && event.detail.year) {
             this.value = event.detail.month + '/' + event.detail.day + '/' + event.detail.year;
           }
@@ -171,7 +165,6 @@ style this element.
 
         _computeYear: function(value) {
           // Date is in MM/DD/YYYY format.
-          console.log('year::::', value.split('/')[2]);
           return value.split('/')[2];
         },
 

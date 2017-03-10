@@ -1,0 +1,229 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-input/iron-input.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../iron-form-element-behavior/iron-form-element-behavior.html">
+<link rel="import" href="../iron-validatable-behavior/iron-validatable-behavior.html">
+<link rel="import" href="../paper-input/paper-input-container.html">
+<link rel="import" href="../paper-styles/default-theme.html">
+<link rel="import" href="../paper-styles/typography.html">
+
+<link rel="import" href="lmb-date-validator.html">
+
+<dom-module id="lmb-date-input-field">
+  <template>
+    <style>
+      span {
+        @apply(--paper-input-container-font);
+        opacity: 0.33;
+        text-align: center;
+      }
+
+      input[is="iron-input"] {
+        position: relative; /* to make a stacking context */
+        outline: none;
+        box-shadow: none;
+        padding: 0;
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: var(--paper-input-container-input-color, --primary-text-color);
+        text-align: center;
+
+        @apply(--layout-flex);
+        @apply(--paper-font-subhead);
+        @apply(--paper-input-container-input);
+      }
+
+      .container {
+        @apply(--layout-horizontal);
+      }
+    </style>
+
+    <lmb-date-validator id="validator"></lmb-date-validator>
+
+    <span aria-hidden id="monthLabel" hidden>Month</span>
+    <span aria-hidden id="dayLabel" hidden>Day</span>
+    <span aria-hidden id="yearLabel" hidden>Year</span>
+
+    <div class="container">
+      <input is="iron-input"
+          id="month"
+          aria-labelledby$="[[_computeAriaLabel(ariaLabelPrefix,'monthLabel')]]"
+          required$="[[required]]"
+          maxlength="2"
+          bind-value="{{month}}"
+          placeholder="MM"
+          allowed-pattern="[0-9]"
+          prevent-invalid-input
+          autocomplete="month"
+          type="tel"
+          disabled$="[[disabled]]"
+          invalid="{{invalid}}"
+          autofocus$="[[autofocus]]"
+          inputmode$="[[inputmode]]"
+          readonly$="[[readonly]]">
+      <span>/</span>
+      <input is="iron-input"
+          id="day"
+          aria-labelledby$="[[_computeAriaLabel(ariaLabelPrefix,'dayLabel')]]"
+          required$="[[required]]"
+          maxlength="2"
+          bind-value="{{day}}"
+          placeholder="DD"
+          allowed-pattern="[0-31]"
+          prevent-invalid-input
+          autocomplete="day"
+          type="tel"
+          disabled$="[[disabled]]"
+          invalid="{{invalid}}"
+          autofocus$="[[autofocus]]"
+          inputmode$="[[inputmode]]"
+          readonly$="[[readonly]]">
+      <span>/</span>
+      <input is="iron-input"
+          id="year"
+          aria-labelledby$="[[_computeAriaLabel(ariaLabelPrefix,'yearLabel')]]"
+          required$="[[required]]"
+          maxlength="4"
+          bind-value="{{year}}"
+          placeholder="YYYY"
+          allowed-pattern="[0-9]"
+          prevent-invalid-input
+          autocomplete="year"
+          type="tel"
+          disabled$="[[disabled]]"
+          invalid="{{invalid}}"
+          inputmode$="[[inputmode]]"
+          readonly$="[[readonly]]">
+    </div>
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+
+    is: 'lmb-date-input-field',
+
+    behaviors: [
+      Polymer.IronValidatableBehavior
+    ],
+
+    properties: {
+      /**
+       * Set to true to mark the input as required.
+       */
+      required: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * The month component of the date displayed.
+       */
+      month: {
+        type: String
+      },
+
+      /**
+       * The day component of the date displayed.
+       */
+      day: {
+        type: String
+      },
+
+      /**
+       * The year component of the date displayed.
+       */
+      year: {
+        type: String
+      },
+
+      /**
+       * The date object used by the validator. Has two properties, month and year.
+       */
+      date: {
+        notify: true,
+        type: Object
+      },
+
+      validator: {
+        type: String,
+        value: 'date-validator'
+      },
+
+      ariaLabelPrefix: {
+        type:String
+      },
+
+      /**
+       * Set to true to disable the month, day and year input elements.
+       */
+      disabled: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * Set to true to autofocus the month input element.
+       */
+      autofocus: {
+        type: Boolean
+      },
+
+      /**
+       * Bound to the month and year input elements' `inputmode` property.
+       */
+      inputmode: {
+        type: String
+      },
+
+      /**
+       * Set to true to mark the month and year inputs as not editable.
+       */
+      readonly: {
+        type: Boolean,
+        value: false
+      }
+    },
+
+    observers: [
+      '_computeDate(month,day,year)'
+    ],
+
+    _computeDate: function(month, day, year) {
+      // Months are 0-11.
+      this.date = {month: month, day: day, year: year};
+      this.fire('dateChanged', this.date);
+      // Advance cursor to year after month entry
+      if (month.length === 2 && !!!day.length) {
+        this.$.day.focus();
+      } else if(day.length === 2 && !!!year.length) {
+        this.$.year.focus();
+      }
+    },
+
+    validate: function() {
+      // Empty, non-required input is valid.
+      if (!this.required && this.month == '' && this.day == '' && this.year == '') {
+        return true;
+      }
+      this.invalid = !this.$.validator.validate(this.date);
+      this.fire('iron-input-validate');
+      return !this.invalid;
+    },
+
+    _computeAriaLabel: function(dateLabel, monthLabel) {
+      return dateLabel + ' ' + monthLabel;
+    }
+  });
+</script>
